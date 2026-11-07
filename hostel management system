@@ -1,0 +1,308 @@
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
+public class HostelManagementSystem {
+
+    // Resident class
+    static class Resident {
+        int id;
+        String name;
+        String phone;
+        int roomNo;
+        boolean occupied;
+
+        Resident(int id, String name, String phone, int roomNo) {
+            this.id = id;
+            this.name = name;
+            this.phone = phone;
+            this.roomNo = roomNo;
+            this.occupied = true;
+        }
+
+        public String toString() {
+            return "ID: " + id +
+                   "\nName: " + name +
+                   "\nPhone: " + phone +
+                   "\nRoom No: " + roomNo +
+                   "\nStatus: " + (occupied ? "Occupied" : "Vacated");
+        }
+    }
+
+    // ArrayList to store residents
+    ArrayList<Resident> residents = new ArrayList<>();
+
+    JFrame frame;
+    JTextField idField, nameField, phoneField;
+    JTextField roomField, searchField;
+    JTextArea outputArea;
+
+    // Constructor
+    HostelManagementSystem() {
+
+        // Sample records
+        residents.add(new Resident(101, "Ravi Kumar", "9876543210", 211));
+        residents.add(new Resident(102, "Sneha Reddy", "9876501234", 202));
+
+        // Frame creation
+        frame = new JFrame("Hostel Management System");
+        frame.setSize(700, 550);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout(10, 10));
+
+        JLabel title = new JLabel(
+            "HOSTEL MANAGEMENT SYSTEM",
+            JLabel.CENTER
+        );
+        title.setFont(new Font("Arial", Font.BOLD, 22));
+        frame.add(title, BorderLayout.NORTH);
+
+        // Input panel
+        JPanel inputPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        inputPanel.setBorder(
+            BorderFactory.createTitledBorder("Resident Details")
+        );
+
+        idField = new JTextField();
+        nameField = new JTextField();
+        phoneField = new JTextField();
+        roomField = new JTextField();
+        searchField = new JTextField();
+
+        inputPanel.add(new JLabel("Student ID:"));
+        inputPanel.add(idField);
+
+        inputPanel.add(new JLabel("Student Name:"));
+        inputPanel.add(nameField);
+
+        inputPanel.add(new JLabel("Phone Number:"));
+        inputPanel.add(phoneField);
+
+        inputPanel.add(new JLabel("Room Number:"));
+        inputPanel.add(roomField);
+
+        inputPanel.add(new JLabel("Search Student ID:"));
+        inputPanel.add(searchField);
+
+        frame.add(inputPanel, BorderLayout.CENTER);
+
+        // Output area
+        outputArea = new JTextArea(10, 40);
+        outputArea.setEditable(false);
+        outputArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
+
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(inputPanel, BorderLayout.NORTH);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+
+        frame.add(centerPanel, BorderLayout.CENTER);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 3, 10, 10));
+
+        JButton addButton = new JButton("Add Resident");
+        JButton searchButton = new JButton("Search");
+        JButton vacateButton = new JButton("Vacate Room");
+        JButton displayButton = new JButton("Display All");
+        JButton clearButton = new JButton("Clear");
+
+        buttonPanel.add(addButton);
+        buttonPanel.add(searchButton);
+        buttonPanel.add(vacateButton);
+        buttonPanel.add(displayButton);
+        buttonPanel.add(clearButton);
+
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Button actions
+        addButton.addActionListener(e -> addResident());
+
+        searchButton.addActionListener(e -> searchResident());
+
+        vacateButton.addActionListener(e -> vacateRoom());
+
+        displayButton.addActionListener(e -> displayResidents());
+
+        clearButton.addActionListener(e -> clearFields());
+
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+
+        displayResidents();
+    }
+
+    // Find resident using ID
+    Resident findResident(int id) {
+        for (Resident r : residents) {
+            if (r.id == id) {
+                return r;
+            }
+        }
+        return null;
+    }
+
+    // Check room availability
+    boolean isRoomOccupied(int roomNo) {
+        for (Resident r : residents) {
+            if (r.roomNo == roomNo && r.occupied) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Add resident
+    void addResident() {
+        try {
+            int id = Integer.parseInt(idField.getText().trim());
+            String name = nameField.getText().trim();
+            String phone = phoneField.getText().trim();
+            int room = Integer.parseInt(roomField.getText().trim());
+
+            if (name.isEmpty() || phone.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    frame, "Please enter all details."
+                );
+                return;
+            }
+
+            if (id <= 0 || room <= 0) {
+                JOptionPane.showMessageDialog(
+                    frame, "ID and room number must be positive."
+                );
+                return;
+            }
+
+            if (!phone.matches("[0-9]{10}")) {
+                JOptionPane.showMessageDialog(
+                    frame, "Enter a valid 10-digit phone number."
+                );
+                return;
+            }
+
+            if (findResident(id) != null) {
+                JOptionPane.showMessageDialog(
+                    frame, "Student ID already exists!"
+                );
+                return;
+            }
+
+            if (isRoomOccupied(room)) {
+                JOptionPane.showMessageDialog(
+                    frame, "Room is already occupied!"
+                );
+                return;
+            }
+
+            residents.add(new Resident(id, name, phone, room));
+
+            JOptionPane.showMessageDialog(
+                frame, "Resident added successfully!"
+            );
+
+            displayResidents();
+            clearFields();
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(
+                frame, "Enter valid ID and room number."
+            );
+        }
+    }
+
+    // Search resident
+    void searchResident() {
+        try {
+            int id = Integer.parseInt(searchField.getText().trim());
+
+            Resident r = findResident(id);
+
+            if (r != null) {
+                outputArea.setText(r.toString());
+            } else {
+                JOptionPane.showMessageDialog(
+                    frame, "Resident not found!"
+                );
+            }
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(
+                frame, "Enter a valid Student ID."
+            );
+        }
+    }
+
+    // Vacate room
+    void vacateRoom() {
+        try {
+            int id = Integer.parseInt(searchField.getText().trim());
+
+            Resident r = findResident(id);
+
+            if (r == null) {
+                JOptionPane.showMessageDialog(
+                    frame, "Resident not found!"
+                );
+                return;
+            }
+
+            if (!r.occupied) {
+                JOptionPane.showMessageDialog(
+                    frame, "Room is already vacated!"
+                );
+                return;
+            }
+
+            r.occupied = false;
+
+            JOptionPane.showMessageDialog(
+                frame, "Room vacated successfully!"
+            );
+
+            displayResidents();
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(
+                frame, "Enter a valid Student ID."
+            );
+        }
+    }
+
+    // Display all residents
+    void displayResidents() {
+        StringBuilder result = new StringBuilder();
+
+        result.append("HOSTEL RESIDENT RECORDS\n");
+        result.append("------------------------------\n");
+
+        if (residents.isEmpty()) {
+            result.append("No resident records available.");
+        } else {
+            for (Resident r : residents) {
+                result.append(r.toString());
+                result.append("\n------------------------------\n");
+            }
+        }
+
+        outputArea.setText(result.toString());
+    }
+
+    // Clear input fields
+    void clearFields() {
+        idField.setText("");
+        nameField.setText("");
+        phoneField.setText("");
+        roomField.setText("");
+        searchField.setText("");
+    }
+
+    // Main method
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() ->
+            new HostelManagementSystem()
+        );
+    }
+}
